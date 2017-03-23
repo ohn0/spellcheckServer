@@ -7,6 +7,5 @@
 extern int MAX_LENGTH;
 char** load_dictionary(char*);
 int search_dictionary(char**, char*);
-int free_dictionary();
-
+int free_dictionary(char **);
 #endif

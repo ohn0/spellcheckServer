@@ -1,6 +1,8 @@
 #include "dictionary.h"
 int MAX_LENGTH = 0;
-char** load_dictionary(char * fileName){	
+char** load_dictionary(char * fileName){
+	//Loads the dictionary into a char**, allocating each char*
+	//to the size of the word at that location.	
 	FILE * words = fopen(fileName, "r");
 	if(words == NULL){
 		printf("Error opening file.\n");
@@ -36,6 +38,8 @@ char** load_dictionary(char * fileName){
 }
 
 int search_dictionary(char** dict, char* word){
+	//Performs binary search on the dictionary, returning 0
+	//if the word is not found. 1 if found.
 	int cmp_result;
 	int lower = 0;
 	int upper = MAX_LENGTH;
@@ -56,5 +60,16 @@ int search_dictionary(char** dict, char* word){
 	}
 	return 0;
 
+
+}
+
+int free_dictionary(char** dictionary)
+{
+	//Frees the array and all of its contents.
+	int i;
+	for(i = 0; i < MAX_LENGTH; i++){
+		free(dictionary[i]);
+	}
+	free(dictionary);
 
 }
