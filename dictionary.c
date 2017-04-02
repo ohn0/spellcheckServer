@@ -3,6 +3,7 @@ int MAX_LENGTH = 0;
 char** load_dictionary(char * fileName){
 	//Loads the dictionary into a char**, allocating each char*
 	//to the size of the word at that location.	
+	//Returns a pointer to an allocated array of char*, each containing a word from the dictionary.
 	FILE * words = fopen(fileName, "r");
 	if(words == NULL){
 		printf("Error opening file.\n");
@@ -15,6 +16,7 @@ char** load_dictionary(char * fileName){
 	size_t len = 0;
 	char temp_word[100];
 	int c,i,j;
+	//Obtain the total number of words in the dictionary.
 	while(getline(&line,&len, words) != -1){
 		num_words++;
 	}
@@ -22,6 +24,7 @@ char** load_dictionary(char * fileName){
 	char** dictionary = (char**)malloc(num_words * sizeof(char*));
 	fsetpos(words, &begin_pos);
 	j = 0;
+	//Transfer each word from the file to the array.
 	while((c = getc(words)) != EOF){
 		if(c != '\n'){
 			temp_word[i++] = c;	
@@ -38,8 +41,8 @@ char** load_dictionary(char * fileName){
 }
 
 int search_dictionary(char** dict, char* word){
-	//Performs binary search on the dictionary, returning 0
-	//if the word is not found. 1 if found.
+	//Performs binary search on the dictionary.
+	//Returns 1 if the word is found, 0 if not.
 	int cmp_result;
 	int lower = 0;
 	int upper = MAX_LENGTH;

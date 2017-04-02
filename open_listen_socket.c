@@ -2,7 +2,9 @@
 
 int open_listenfd(int port)
 {
-	//literally copied this from the book.
+	//Taken from the textbook. Sets up a listener socket that will
+	//later be used to generate client sockets.
+	//Returns the file descriptor bound to the connection if successful, -1 otherwise.
 	int listenfd, optval = 1;
 	struct sockaddr_in serveraddr;
 
@@ -12,7 +14,7 @@ int open_listenfd(int port)
 	//Get rid of "Already in use" error.
 	if(setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR,
 				  (const void *)&optval, sizeof(int)) < 0){return -1;}
-
+	//Clears serveraddr
 	bzero((char *) &serveraddr, sizeof(serveraddr));
 	serveraddr.sin_family = AF_INET;
 	serveraddr.sin_addr.s_addr = htonl(INADDR_ANY);
