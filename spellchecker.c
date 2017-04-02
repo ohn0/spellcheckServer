@@ -6,31 +6,49 @@ char* MISSPELLED = " MISSPELLED\n";
 char ** dictionary;
 void *worker();
 int main(int argc, char** argv){
+	char* DEFAULT_DICTIONARY = "words";
 	socket_queue.current_pos = 0;
 	socket_queue.top = 0;
+	socket_queue.Q_count = 0;
+	pthread_mutex_init(&socket_queue.control_mutex, NULL);
 	sem_init(&(socket_queue.full), 0, Q_SIZE);
 	sem_init(&(socket_queue.empty), 0, 0);
-	pthread_t workers[NUM_THREADS];
 	struct sockaddr_in client;
 	int clientlen = sizeof(client);
 	int port, listener, connfd;
-	if(argc == 2 ){
-		if((dictionary = load_dictionary(argv[1]) == NULL)){
-			//Assuming the only argument user passed was a port.
-			port = atoi(argv[1]);
-			dictionary = load_dictionary(DEFAULT_DICTIONARY);
-		}else{
-			//Assuming only argument user passed was a valid dictionary.
-			port = DEFAULT_PORT;
-		}		
+	int validport = 0;
+	int validdict = 0;
+	if(argc == 1){
+		dictionary = load_dictionary(DEFAULT_DICTIONARY);
+		port = DEFAULT_PORT;
+		printf("No dictionary or port number specified, using default port and dictionary.\n");
+		validport = validdict = 1;
 	}
-	if(argc == 3){
-		printf("Began working!\n");
-		if((dictionary = load_dictionary(argv[1])) == NULL){
-			printf("Error opening dictionary.\nFormat: dictionary, port number.\n");
-			return 0;
+	else{
+		int i;
+		for(i = 0; i != argc - 1; i++){
+			if(strcmp(argv[i], "-p") == 0){
+				port = atoi(argv[i+1]);
+				if(port < 10000 || port > 65536){
+					printf("Invalid port, using default.\n");
+					port = DEFAULT_PORT;
+				}
+				validport = 1;
+			}
+			else if(strcmp(argv[i], "-d") == 0){
+				if((dictionary = load_dictionary(argv[i+1])) == NULL){
+					printf("invalid dictionary, using default.\n");
+					dictionary = load_dictionary(DEFAULT_DICTIONARY);
+				}
+				validdict = 1;
+			}
 		}
-		port = atoi(argv[2]);
+
+	}
+
+	if(!validport || !validdict){
+		printf("Error loading dictionary or getting port number. format: -p PORT -d DICTIONARY.\n");
+		return 0;
 	}
 	//dictionary = load_dictionary(argv[1]);
 	listener = open_listenfd(port);
@@ -53,7 +71,7 @@ void * worker(){
 	int j = 0;
 	int c = 0;
 	printf("worker has received socket %d to consume.\n", connfd);
-	int rec_size = recv(connfd, buffer, 200, 0);	
+	int rec_size = recv(connfd, buffer, 200,0);
 	if(rec_size == 2){
 		while(buffer[0] != '\n'){
 			buffer2[j] = buffer[0];
@@ -78,5 +96,7 @@ void * worker(){
 		strcat(buffer2, MISSPELLED);
 		send(connfd, buffer2, strlen(buffer2), 0);
 	}
+	printf("Closing %d.\n", connfd);
 	close(connfd);
+	pthread_exit(0);
 }

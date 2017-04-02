@@ -6,5 +6,4 @@
 #include <netinet/in.h>
 #include <stdio.h>
 int open_listenfd(int );
-int server_writer(int);
 #endif

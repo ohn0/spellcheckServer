@@ -13,7 +13,7 @@ char** load_dictionary(char * fileName){
 	int num_words = 0;
 	char * line;
 	size_t len = 0;
-	char temp_word[50];
+	char temp_word[100];
 	int c,i,j;
 	while(getline(&line,&len, words) != -1){
 		num_words++;

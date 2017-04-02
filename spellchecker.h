@@ -5,7 +5,6 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
-#define DEFAULT_DICTIONARY "words"
 #define DEFAULT_PORT 9001
 #define NUM_THREADS 10
 #endif

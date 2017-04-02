@@ -23,3 +23,25 @@ int open_listenfd(int port)
 	return listenfd;
 }
 
+int server_writer(int port)
+{
+	int listener, connfd, clientlen;
+	struct sockaddr_in client;
+	listener = open_listenfd(port);
+	char* message = "Can you read this?\n";
+	clientlen = sizeof(client);
+	char read_buffer[200];
+	printf("Listening on port %d.\n", port);
+	connfd =accept(listener, (struct sockaddr *)&client, &clientlen);
+	int i, rec_size;
+	char buffer[200];
+	i = 0;
+	while(1){
+		//send(connfd, message, 19*(sizeof(char)), 0);
+		rec_size = recv(connfd, read_buffer, 200, 0);
+		if(read_buffer[0] == EOF){close(connfd); break;}
+		printf("Client wrote:%s", read_buffer);
+		send(connfd, read_buffer, strlen(read_buffer), 0);
+		bzero(read_buffer, strlen(read_buffer));
+	}
+}
