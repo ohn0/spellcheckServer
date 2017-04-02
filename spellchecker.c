@@ -6,7 +6,6 @@ char* MISSPELLED = " MISSPELLED\n";
 char ** dictionary;
 void *worker();
 int main(int argc, char** argv){
-	char* DEFAULT_DICTIONARY = "words";
 	socket_queue.current_pos = 0;
 	socket_queue.top = 0;
 	socket_queue.Q_count = 0;
@@ -14,7 +13,7 @@ int main(int argc, char** argv){
 	sem_init(&(socket_queue.full), 0, Q_SIZE);
 	sem_init(&(socket_queue.empty), 0, 0);
 	struct sockaddr_in client;
-	int clientlen = sizeof(client);
+	unsigned int clientlen = sizeof(client);
 	int port, listener, connfd;
 	int validport = 0;
 	int validdict = 0;
@@ -62,6 +61,7 @@ int main(int argc, char** argv){
 		pthread_t worker_thread;
 		pthread_create(&worker_thread, NULL, worker, NULL);
 	}
+	free_dictionary(dictionary);
 }
 
 void * worker(){
@@ -69,7 +69,6 @@ void * worker(){
 	char buffer[200];
 	char buffer2[200];
 	int j = 0;
-	int c = 0;
 	printf("worker has received socket %d to consume.\n", connfd);
 	int rec_size = recv(connfd, buffer, 200,0);
 	if(rec_size == 2){

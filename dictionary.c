@@ -71,5 +71,5 @@ int free_dictionary(char** dictionary)
 		free(dictionary[i]);
 	}
 	free(dictionary);
-
+	return 0;
 }
