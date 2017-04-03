@@ -2,7 +2,8 @@
 
 struct data_queue socket_queue;
 char* OK = " OK\n";
-char* MISPELLED = " MISPELLED\n";
+char* MISSPELLED = " MISSPELLED\n";
+char* NEXT_WORD = "Enter next word or EOF to quit.\n";
 char ** dictionary;
 int main(int argc, char** argv)
 {
@@ -78,38 +79,46 @@ void * worker(){
 	int j = 0;
 	printf("worker has received socket %d to consume.\n", connfd);
 	//Begin receiving data from client.
-	int rec_size = recv(connfd, buffer, 200,0);
+	int rec_size = 0; 
 	//Depending on the client's telnet, the data they send could either come as one line, or as a 
 	//byte everytime recv is called. This is handled by inspecting rec_size and copying the right
 	//number of bytes depending on the situation.
-	if(rec_size == 2){
-		while(buffer[0] != '\n'){
-			buffer2[j] = buffer[0];
-			recv(connfd, buffer,1,0);
-			j++;
+	while(1){
+		j = 0;
+		memset(buffer, 0, 200);
+		memset(buffer2, 0, 200);
+		rec_size = recv(connfd, buffer, 200,0);
+		if(buffer[0] == EOF){break;}
+		if(rec_size == 2){
+			while(buffer[0] != '\n'){
+				buffer2[j] = buffer[0];
+				recv(connfd, buffer,1,0);
+				j++;
+			}
+			buffer2[j-1] = '\0';
+		}else if(rec_size > 2){
+			while(buffer[j] != '\n'){
+				buffer2[j] = buffer[j];
+				j++;	
+			}
+			buffer2[j-1] = '\0';
 		}
-		buffer2[j-1] = '\0';
-	}else if(rec_size > 2){
-		while(buffer[j] != '\n'){
-			buffer2[j] = buffer[j];
-			j++;	
+		printf("%s\n", buffer);
+		//Check if buffer2 is a valid word and respond accordingly, then close the connection.
+		//Need a mutex here because search_dictionary could result in a race condition if multiple clients
+		//send their requests at the same time.
+		pthread_mutex_lock(&socket_queue.mutex_dict);
+		int result = search_dictionary(dictionary, buffer2);
+		pthread_mutex_unlock(&socket_queue.mutex_dict);
+		if(result == 1){
+			strcat(buffer2, OK);
+			send(connfd, buffer2, strlen(buffer2),0);
 		}
-		buffer2[j-1] = '\0';
-	}
-	printf("%s\n", buffer);
-	//Check if buffer2 is a valid word and respond accordingly, then close the connection.
-	//Need a mutex here because search_dictionary could result in a race condition if multiple clients
-	//send their requests at the same time.
-	pthread_mutex_lock(&socket_queue.mutex_dict);
-	int result = search_dictionary(dictionary, buffer2);
-	pthread_mutex_unlock(&socket_queue.mutex_dict);
-	if(result == 1){
-		strcat(buffer2, OK);
-		send(connfd, buffer2, strlen(buffer2),0);
-	}
-	else{
-		strcat(buffer2, MISPELLED);
-		send(connfd, buffer2, strlen(buffer2), 0);
+		else{
+			strcat(buffer2, MISSPELLED);
+			send(connfd, buffer2, strlen(buffer2), 0);
+		}
+		send(connfd, NEXT_WORD, strlen(NEXT_WORD), 0);
 	}
 	printf("Closing %d.\n", connfd);
 	close(connfd);
